@@ -12,3 +12,4 @@ This app handles all and calculate final item price, and keeps track of total am
 
 
 
+![image](https://github.com/user-attachments/assets/cae0f638-e996-4d3f-9c86-7c567299cac8)
