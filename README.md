@@ -21,7 +21,7 @@ This **Bill Splitting App** was created for personal use and is tailored specifi
 
 ---
 
-<img src="https://github.com/user-attachments/assets/cae0f638-e996-4d3f-9c86-7c567299cac8" alt="App Screenshot" height="600"/>
+<img src="https://github.com/user-attachments/assets/9ad3583e-cb51-4c52-8990-1f9ba7e32cdc" alt="App Screenshot" height="600"/>
 
 ---
 
