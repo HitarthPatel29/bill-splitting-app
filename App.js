@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity,Alert, Modal,useColorScheme } from 'react-native';
+import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity,Alert, Modal,useColorScheme, ScrollView} from 'react-native';
 import { Provider, Button, RadioButton, DefaultTheme } from 'react-native-paper';
 
 export default function App() {
   const [itemPrice, setItemPrice] = useState('');
-  const [person, setPerson] = useState('');
   const [tax, setTax] = useState(false); // Boolean for tax
   const [discountValue, setDiscountValue] = useState(0.00); // float for discount
   const [discount, setDiscount] = useState(false); // Boolean for discount
@@ -13,9 +12,10 @@ export default function App() {
   const [dropdownVisible, setDropdownVisible] = useState(false); // Dropdown visibility
   const [modalVisible, setModalVisible] = useState(false); //custom TaxDiscount Settings
   const [dButtonActive, setDButtonActive] = useState(false); //custom TaxDiscount Settings
-  const [jButtonActive, setJButtonActive] = useState(false); //custom TaxDiscount Settings
+  const [jButtonActive, setJButtonActive] = useState(true); //custom TaxDiscount Settings
   const [hButtonActive, setHButtonActive] = useState(false); //custom TaxDiscount Settings
   const [aButtonActive, setAButtonActive] = useState(false); //custom TaxDiscount Settings
+  const [nameInputs, setNameInputs] = useState([{ id: 0, name: '' , dropdownVisible: false }]); // Initial input
   const theme = {
     ...DefaultTheme,
     colors: {
@@ -32,10 +32,11 @@ export default function App() {
     let price = parseFloat(itemPrice) || 0;
     let taxValue = tax ? 0.13 : 0; // 13% tax if applicable
 
-    const finalPrice = price * (1 + taxValue) * (1 - discountValue);
+    finalPrice = price * (1 + taxValue) * (1 - discountValue);
     setSplitAmount(finalPrice);
+    finalPrice = finalPrice/nameInputs.length
 
-    if (person.trim() === '') {
+    if (nameInputs[0].name.trim() === '') {
       alert('Please enter or select a person\'s name.');
       return;
     }
@@ -44,232 +45,316 @@ export default function App() {
     // Add or update the total for the person
     setTotals((prevTotals) => {
       const updatedTotals = { ...prevTotals };
-      if (updatedTotals[person]) {
-        updatedTotals[person] += finalPrice;
-      } else {
-        updatedTotals[person] = finalPrice;
-      }
+      nameInputs.forEach((item) => {
+        if (updatedTotals[item.name]) {
+          updatedTotals[item.name] += finalPrice;
+        } else {
+          updatedTotals[item.name] = finalPrice;
+        }
+      });
+      
       return updatedTotals;
     });
 
     // Clear input fields
     setItemPrice('');
-    setPerson('');
+    setNameInputs([{ id: 0, name: '' }]); // Reset to initial state  
 
   };
   // Handle name selection from dropdown
-  const handleNameSelect = (selectedName) => {
-    setPerson(selectedName); // Set the selected name in the textbox
+  const handleNameSelect = (itemFromTotals, itemFromNameInputs) => {
+    setNameInputs((prevInputs) =>
+      prevInputs.map((input) =>
+        input.id === itemFromNameInputs.id ? { ...input, name: itemFromTotals.name } : input
+      )
+    );
     setDropdownVisible(false); // Hide dropdown
   };
   
-  const data = Object.entries(totals).map(([name, total]) => ({
+  const totalsData = Object.entries(totals).map(([name, total]) => ({
     name,
     total,
   }));
 
+  const resetApp = () => {
+    setItemPrice('');
+    setTax(false);
+    setDiscountValue(0.00);
+    setDiscount(false);
+    setSplitAmount(0);
+    setTotals({});
+    setDropdownVisible(false);
+    setModalVisible(false);
+    setDButtonActive(false);
+    setJButtonActive(true);
+    setHButtonActive(false);
+    setAButtonActive(false);
+    setNameInputs([{ id: 0, name: '' }]); // Reset to initial state   
+  };
+
+  const removeName = (id) => {
+    if(nameInputs.length > 1){
+      setNameInputs(nameInputs.filter((input) => input.id !== id));
+    }
+  };
+
+  const updateName = (id, newName) => {
+    setNameInputs((prevInputs) =>
+      prevInputs.map((input) =>
+        input.id === id ? { ...input, name: newName } : input
+      )
+    );
+  };
+
+
+  function showNameBox(itemFromNameInputs){
+    return(
+      <View style={{flexDirection : 'row'}}>
+        <View style={{flexGrow : 1 }}>
+          <TextInput
+            style={{
+              borderWidth: 1,borderColor: '#ccc', borderRadius: 8,
+              padding: 10,
+              marginTop : 5,
+              fontSize: 16,
+              backgroundColor: '#fff',
+              color: '#000',
+            }}
+            placeholder="Enter Person's Name"
+            value={itemFromNameInputs.name}
+            onChangeText={(text)=> updateName(itemFromNameInputs.id, text)}
+            onChange={() => itemFromNameInputs.dropdownVisible = true}
+            onFocus={() => itemFromNameInputs.dropdownVisible = true}
+            onBlur={() => itemFromNameInputs.dropdownVisible = false}
+            returnKeyType="done"
+            placeholderTextColor="#888"
+          />
+          {itemFromNameInputs.dropdownVisible && (
+            <FlatList
+              style={styles.dropdown}
+              data={totalsData} // Pass the array to FlatList
+              keyExtractor={(item) => item.name} // Use the name as a unique key
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.dropdownItem} onPress={() => handleNameSelect(item, itemFromNameInputs)}>
+                  <Text>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+        <View style={{justifyContent : 'center'}}>
+          <TouchableOpacity onPress={() => {removeName(itemFromNameInputs.id)}}
+            style={{
+                justifyContent : 'center',
+                alignItems : 'center',
+                width : 25, height : 25,
+            }}
+          >
+            <Text style={{color : 'red', fontSize : 25}}>-</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <Provider theme={theme}>
-    <View style={styles.container}>
-      <Text style={styles.title}>Bill Splitting App</Text>
-
-      
-      <RadioButton.Group
-        onValueChange={(value) => setDiscountValue(parseFloat(value))}
-        value={discountValue.toString()}
-      >
-        <View style={styles.row}>
-          <RadioButton.Item label="No Discount" value="0" labelStyle={{ color: '#000' }}/>
-          <RadioButton.Item label="10%" value="0.1" labelStyle={{ color: '#000' }}/>
-          <RadioButton.Item label="20%" value="0.2" labelStyle={{ color: '#000' }}/>
-        </View>
-      </RadioButton.Group>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Item Price"
-        keyboardType="numeric"
-        value={itemPrice}
-        onChangeText={setItemPrice}
-        returnKeyType="done"
-        placeholderTextColor="#888"
-      />
-
-      <Text style={styles.label}>Select or Enter Person:</Text>
-      <View style={{marginVertical : 10,}}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Person's Name"
-          value={person}
-          onChangeText={setPerson}
-          onChange={() => setDropdownVisible(true)} // Show dropdown when textbox is focused
-          returnKeyType="done"
-          placeholderTextColor="#888"
-        />
-        {dropdownVisible && (
-          <FlatList
-            style={styles.dropdown}
-            data={data} // Pass the array to FlatList
-            keyExtractor={(item) => item.name} // Use the name as a unique key
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.dropdownItem} onPress={() => handleNameSelect(item.name)}>
-                <Text>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-      </View>
-      <Text style={styles.label}>Price Type</Text>
-          <View style={styles.row}>
-            <Button
-              mode={dButtonActive ? 'contained' : 'outlined'}
-              onPress={() => {
-                setDiscount(true);
-                setTax(false);
-                setDButtonActive(true);
-                setJButtonActive(false);
-                setHButtonActive(false);
-                setAButtonActive(false);
-                }}
-              style={dButtonActive ? styles.buttonActive : styles.buttonInactive}
-            >
-              D
-            </Button>
-            <Button
-              mode={jButtonActive ? 'contained' : 'outlined'}
-              onPress={() => {
-                setDiscount(true);
-                setTax(true);
-                setDButtonActive(false);
-                setJButtonActive(true);
-                setHButtonActive(false);
-                setAButtonActive(false);
-              }}
-              style={jButtonActive ? styles.buttonActive : styles.buttonInactive}
-            >
-              J
-            </Button>
-            <Button
-              mode={hButtonActive ? 'contained' : 'outlined'}
-              onPress={() => {
-                setDiscount(false);
-                setTax(false);
-                setDButtonActive(false);
-                setJButtonActive(false);
-                setHButtonActive(true);
-                setAButtonActive(false);
-              }}
-              style={hButtonActive ? styles.buttonActive : styles.buttonInactive}
-            >
-              H
-            </Button>
-            <Button
-              mode={aButtonActive ? 'contained' : 'outlined'}
-              onPress={() => {
-                setDiscount(false);
-                setTax(true);
-                setDButtonActive(false);
-                setJButtonActive(false);
-                setHButtonActive(false);
-                setAButtonActive(true);
-              }}
-              style={aButtonActive ? styles.buttonActive : styles.buttonInactive}
-            >
-              A
-            </Button>
-          </View>
-        <View>
-          <Modal
-            animationType="fade"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              Alert.alert('Modal has been closed.');
-              setModalVisible(!modalVisible);
-            }}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalView}>
-
-                {/*Tax or No Tax */}
-                <Text style={styles.label}>Tax:</Text>
-                <View style={styles.row}>
-                  <Button
-                    mode={tax ? 'contained' : 'outlined'}
-                    onPress={() => setTax(true)}
-                    style={tax ? styles.buttonActive : styles.buttonInactive}
-                  >
-                    Tax
-                  </Button>
-                  <Button
-                    mode={!tax ? 'contained' : 'outlined'}
-                    onPress={() => setTax(false)}
-                    style={!tax ? styles.buttonActive : styles.buttonInactive}
-                  >
-                    No Tax
-                  </Button>
-                </View>
-
-                {/*Discount or No Discount */}
-                <Text style={styles.label}>Discount:</Text>
-                <View style={styles.row}>
-                  <Button
-                    mode={discount ? 'contained' : 'outlined'}
-                    onPress={() => setDiscount(true)}
-                    style={discount ? styles.buttonActive : styles.buttonInactive}
-                  >
-                    Discount
-                  </Button>
-                  <Button
-                    mode={!discount ? 'contained' : 'outlined'}
-                    onPress={() => setDiscount(false)}
-                    style={!discount ? styles.buttonActive : styles.buttonInactive}
-                  >
-                    No Discount
-                  </Button>
-                </View>
-                <View>
-                  <Button 
-                    style={{width : '30%', alignSelf : 'flex-end',}} 
-                    onPress={() => setModalVisible(!modalVisible)}
-                  >Done
-                  </Button>
-                </View>
+      <ScrollView>
+        <View style={styles.container}>
+            <View style={{flexDirection : 'row', justifyContent: 'space-between', alignItems : 'center'}}>
+              <Text style={styles.title}>Bill Splitting App</Text>
+              <View>
+                <TouchableOpacity onPress={resetApp} style={styles.resetButton}>
+                  <Text style={{color : 'red'}}>Reset</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </Modal>
+              
+            <RadioButton.Group
+              onValueChange={(value) => setDiscountValue(parseFloat(value))}
+              value={discountValue.toString()}
+            >
+              <View style={styles.row}>
+                <RadioButton.Item label="No Discount" value="0" labelStyle={{ color: '#000' }}/>
+                <RadioButton.Item label="10%" value="0.1" labelStyle={{ color: '#000' }}/>
+                <RadioButton.Item label="20%" value="0.2" labelStyle={{ color: '#000' }}/>
+              </View>
+            </RadioButton.Group>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Item Price"
+              keyboardType="numeric"
+              value={itemPrice}
+              onChangeText={setItemPrice}
+              returnKeyType="done"
+              placeholderTextColor="#888"
+            />
 
-          <Button style={{marginTop : -5,width : '50%', alignSelf : 'center',}}  onPress={() => setModalVisible(true)}>
-            Custom Type
-          </Button>
-        </View>
+            {/*Name Boxes */}
+            <View style={{flexDirection : 'row', justifyContent: 'space-between', alignItems : 'center'}}>
+              <Text style={styles.label}>Select or Enter Person:</Text>
+              <View style={{justifyContent : 'center'}}>
+                <TouchableOpacity onPress={() => {setNameInputs([...nameInputs, {id : nameInputs[nameInputs.length-1].id+1, name : ''}])}}
+                  style={{ justifyContent : 'center', alignItems : 'center',}}
+                >
+                  <Text style={{color : '#6200ee', fontSize : 30}}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={{marginBottom : 16}}>
+              {nameInputs.map((item) => (
+                showNameBox(item)
+              ))}
+            </View>
+            
 
+            {/*Price Type */}
+            <Text style={styles.label}>Price Type : </Text>
+                <View style={styles.row}>
+                  <Button
+                    mode={dButtonActive ? 'contained' : 'outlined'}
+                    onPress={() => {
+                      setDiscount(true);
+                      setTax(false);
+                      setDButtonActive(true);
+                      setJButtonActive(false);
+                      setHButtonActive(false);
+                      setAButtonActive(false);
+                      }}
+                    style={dButtonActive ? styles.buttonActive : styles.buttonInactive}
+                  >
+                    D
+                  </Button>
+                  <Button
+                    mode={jButtonActive ? 'contained' : 'outlined'}
+                    onPress={() => {
+                      setDiscount(true);
+                      setTax(true);
+                      setDButtonActive(false);
+                      setJButtonActive(true);
+                      setHButtonActive(false);
+                      setAButtonActive(false);
+                    }}
+                    style={jButtonActive ? styles.buttonActive : styles.buttonInactive}
+                  >
+                    J
+                  </Button>
+                  <Button
+                    mode={hButtonActive ? 'contained' : 'outlined'}
+                    onPress={() => {
+                      setDiscount(false);
+                      setTax(false);
+                      setDButtonActive(false);
+                      setJButtonActive(false);
+                      setHButtonActive(true);
+                      setAButtonActive(false);
+                    }}
+                    style={hButtonActive ? styles.buttonActive : styles.buttonInactive}
+                  >
+                    H
+                  </Button>
+                  <Button
+                    mode={aButtonActive ? 'contained' : 'outlined'}
+                    onPress={() => {
+                      setDiscount(false);
+                      setTax(true);
+                      setDButtonActive(false);
+                      setJButtonActive(false);
+                      setHButtonActive(false);
+                      setAButtonActive(true);
+                    }}
+                    style={aButtonActive ? styles.buttonActive : styles.buttonInactive}
+                  >
+                    A
+                  </Button>
+                </View>
+              <View>
+                <Modal
+                  animationType="fade"
+                  transparent={true}
+                  visible={modalVisible}
+                  onRequestClose={() => {
+                    Alert.alert('Modal has been closed.');
+                    setModalVisible(!modalVisible);
+                  }}
+                >
+                  <View style={styles.modalOverlay}>
+                    <View style={styles.modalView}>
 
-      
+                      {/*Tax or No Tax */}
+                      <Text style={styles.label}>Tax:</Text>
+                      <View style={styles.row}>
+                        <Button
+                          mode={tax ? 'contained' : 'outlined'}
+                          onPress={() => setTax(true)}
+                          style={tax ? styles.buttonActive : styles.buttonInactive}
+                        >
+                          Tax
+                        </Button>
+                        <Button
+                          mode={!tax ? 'contained' : 'outlined'}
+                          onPress={() => setTax(false)}
+                          style={!tax ? styles.buttonActive : styles.buttonInactive}
+                        >
+                          No Tax
+                        </Button>
+                      </View>
 
-      
+                      {/*Discount or No Discount */}
+                      <Text style={styles.label}>Discount:</Text>
+                      <View style={styles.row}>
+                        <Button
+                          mode={discount ? 'contained' : 'outlined'}
+                          onPress={() => setDiscount(true)}
+                          style={discount ? styles.buttonActive : styles.buttonInactive}
+                        >
+                          Discount
+                        </Button>
+                        <Button
+                          mode={!discount ? 'contained' : 'outlined'}
+                          onPress={() => setDiscount(false)}
+                          style={!discount ? styles.buttonActive : styles.buttonInactive}
+                        >
+                          No Discount
+                        </Button>
+                      </View>
+                      <View>
+                        <Button 
+                          style={{width : '30%', alignSelf : 'flex-end',}} 
+                          onPress={() => setModalVisible(!modalVisible)}
+                        >Done
+                        </Button>
+                      </View>
+                    </View>
+                  </View>
+                </Modal>
 
-      <Button mode="contained" onPress={calculateSplit} style={styles.calculateButton}>
-        Calculate Split
-      </Button>
+                <Button style={{marginTop : -5,width : '50%', alignSelf : 'center',}}  onPress={() => setModalVisible(true)}>
+                  Custom Type
+                </Button>
+              </View> 
+            <Button mode="contained" onPress={calculateSplit} style={styles.calculateButton}>
+              Calculate Split
+            </Button>
 
-      <Text style={styles.result}>
-        Final Amount for This Item: {splitAmount.toFixed(2)}
-      </Text>
-
-      <View style={styles.totalsContainer}>
-        <Text style={styles.totalsTitle}>Totals for Each Person:</Text>
-        {Object.keys(totals).length > 0 ? (
-          Object.entries(totals).map(([name, total]) => (
-            <Text key={name} style={styles.totalsText}>
-              {name}: ${total.toFixed(2)}
+            <Text style={styles.result}>
+              Final Amount for This Item: {splitAmount.toFixed(2)}
             </Text>
-          ))
-        ) : (
-          <Text style={styles.totalsText}>No data available.</Text>
-        )}
-      </View>
-    </View>
+
+            <View style={styles.totalsContainer}>
+              <Text style={styles.totalsTitle}>Totals for Each Person:</Text>
+              {Object.keys(totals).length > 0 ? (
+                Object.entries(totals).map(([name, total]) => (
+                  <Text key={name} style={styles.totalsText}>
+                    {name}: ${total.toFixed(2)}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.totalsText}>No data available.</Text>
+              )}
+            </View>
+        </View>
+      </ScrollView>
     </Provider>
   );
 }
@@ -277,15 +362,15 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex : 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'spaced-between',
     paddingTop: 60,
     padding: 16,
     backgroundColor: '#f8f8f8',
   },
   title: {
-    fontSize: 26,
+    fontSize: 27,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginVertical: 10,
     textAlign: 'center',
     color: '#333',
   },
@@ -340,11 +425,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#fff',
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
   },
   totalsTitle: {
     fontSize: 20,
@@ -381,10 +461,14 @@ const styles = StyleSheet.create({
     width: '90%', // Take 80% of screen width
     padding: 20,
     borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5, // Add shadow for Android
-  }
+  },
+  resetButton: {
+    justifyContent : 'center',
+    alignItems : 'center',
+    borderWidth: 2,
+    borderColor: '#d32f2f', // Red background
+    borderRadius: 10,
+    width : 55,
+    height: 35, // Set the height of the logo
+  },
 });
