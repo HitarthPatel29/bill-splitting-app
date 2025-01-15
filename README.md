@@ -12,39 +12,53 @@ This **Bill Splitting App** was created for personal use and is tailored specifi
   - **H**: No tax, no discount.
   - **A**: Tax, no discount.
 
+- **Splitting between people**:
+  - Add '+', to add more Name-TextBoxes that allows to add more people splitting an Item.
+  - remove '-' button beside each added Name-TextBox to remove the person for that Item
+
 - **Advanced Calculations**:
   - Final item prices are calculated based on the product type and applicable discounts/taxes.
+  - Final item prices are equally split between the number of people added for the item
   - Total amounts are tracked for each unique name entered.
   
 - **Dynamic Name List**:
-  - Every unique name entered is added to a list, allowing for further entries and tracking.
+  - Every unique name entered is added to a list, allowing a dropBox to make further entries easy.
+
+- **Reset App**:
+  - Reset button resets all tracking data and the name list.
+---
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7b1184e1-5fc9-4365-8166-824fc6477b1a" alt="App Screenshot" height="600"/>
+  <img src="https://github.com/user-attachments/assets/a7271072-d378-468f-ad49-ae7dfe831023" alt="App Screenshot" height="600"/>
+  <img src="https://github.com/user-attachments/assets/4533a7e3-c568-4df0-82c7-6693442dd4ad" alt="App Screenshot" height="600"/>
+</div>
 
 ---
 
-<img src="https://github.com/user-attachments/assets/9ad3583e-cb51-4c52-8990-1f9ba7e32cdc" alt="App Screenshot" height="600"/>
-
----
 
 ## How It Works
 1. **Enter Item Details**:
-   - Provide the item Price, Person's Name, and price type (`D`, `J`, `H`, or `A`).
-   - The app calculates the final price considering taxes, discounts based on the price type.
+   - Provide the item Price,
+   - Enter Person's Name of Names (if you want to split the final amount with multiple people)
+   - Select price type (`D`, `J`, `H`, or `A`).
 
 2. **Name-Based Tracking**:
-   - Enter a unique name and it will be stored and listed below the 'Name' textBox for ease in further entries.
-   - The app maintains a total amount for each name in the list.
+   - Unique name entered will be stored and listed below the Name-textBox for ease in further entries.
+   - The app tracks total amount for each Name in the list.
 
 3. **View Results**:
-   - See the calculated totals for all names.
+   - The app calculates the final price considering taxes, discounts based on the price type.
+   - Splitts final price among all Names added to the item
+   - Displays a list of all Unique Names with their contribution to the Bill.
 
 ---
 
 ### Example
-Suppose you buy the following items:
+Suppose you buy the following items On ***10% discount*** day:
 - Item 1: $10, `Jay`, Type `D`
 - Item 2: $20, `Hit`, Type `J`
 - Item 3: $15, `Tirth`, Type `H`
-- Item 4: $25, `Hit`, Type `A`
+- Item 4: $25, `Hit` & `Tirth`, Type `A`
 
 The app will:
 1. Apply the appropriate discounts and taxes.
