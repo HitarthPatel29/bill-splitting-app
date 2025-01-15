@@ -471,4 +471,5 @@ const styles = StyleSheet.create({
     width : 55,
     height: 35, // Set the height of the logo
   },
+  
 });
