@@ -22,15 +22,15 @@ This **Bill Splitting App** was created for personal use and is tailored specifi
   - Total amounts are tracked for each unique name entered.
   
 - **Dynamic Name List**:
-  - Every unique name entered is added to a list, allowing a dropBox to make further entries easy.
+  - Every unique name entered is added to a dropDown list for Name-TextBoxes, allowing to make further entries easy.
 
 - **Reset App**:
   - Reset button resets all tracking data and the name list.
 ---
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/7b1184e1-5fc9-4365-8166-824fc6477b1a" alt="App Screenshot" height="600"/>
-  <img src="https://github.com/user-attachments/assets/a7271072-d378-468f-ad49-ae7dfe831023" alt="App Screenshot" height="600"/>
-  <img src="https://github.com/user-attachments/assets/4533a7e3-c568-4df0-82c7-6693442dd4ad" alt="App Screenshot" height="600"/>
+  <img src="https://github.com/user-attachments/assets/7b1184e1-5fc9-4365-8166-824fc6477b1a" alt="App Screenshot" height="500"/>
+  <img src="https://github.com/user-attachments/assets/a7271072-d378-468f-ad49-ae7dfe831023" alt="App Screenshot" height="500"/>
+  <img src="https://github.com/user-attachments/assets/4533a7e3-c568-4df0-82c7-6693442dd4ad" alt="App Screenshot" height="500"/>
 </div>
 
 ---
