@@ -9,7 +9,6 @@ export default function App() {
   const [discount, setDiscount] = useState(false); // Boolean for discount
   const [splitAmount, setSplitAmount] = useState(0);
   const [totals, setTotals] = useState({}); // Object to store totals for each person
-  const [dropdownVisible, setDropdownVisible] = useState(false); // Dropdown visibility
   const [modalVisible, setModalVisible] = useState(false); //custom TaxDiscount Settings
   const [dButtonActive, setDButtonActive] = useState(false); //custom TaxDiscount Settings
   const [jButtonActive, setJButtonActive] = useState(true); //custom TaxDiscount Settings
@@ -32,7 +31,7 @@ export default function App() {
     let price = parseFloat(itemPrice) || 0;
     let taxValue = tax ? 0.13 : 0; // 13% tax if applicable
 
-    finalPrice = price * (1 + taxValue) * (1 - discountValue);
+    finalPrice = price * (1 + taxValue) * (1 - (discount ? discountValue : 0));
     setSplitAmount(finalPrice);
     finalPrice = finalPrice/nameInputs.length
 
@@ -48,8 +47,8 @@ export default function App() {
       nameInputs.forEach((item) => {
         if (updatedTotals[item.name]) {
           updatedTotals[item.name] += finalPrice;
-        } else {
-          updatedTotals[item.name] = finalPrice;
+        } else if(item.name !== ''){
+          updatedTotals[item.name.trim()] = finalPrice;
         }
       });
       
@@ -58,7 +57,7 @@ export default function App() {
 
     // Clear input fields
     setItemPrice('');
-    setNameInputs([{ id: 0, name: '' }]); // Reset to initial state  
+    setNameInputs([{ id: nameInputs[0].id, name: nameInputs[0].name }]); // Reset to initial state  
 
   };
   // Handle name selection from dropdown
@@ -68,7 +67,7 @@ export default function App() {
         input.id === itemFromNameInputs.id ? { ...input, name: itemFromTotals.name } : input
       )
     );
-    setDropdownVisible(false); // Hide dropdown
+    itemFromNameInputs.dropdownVisible = false; // Hide dropdown
   };
   
   const totalsData = Object.entries(totals).map(([name, total]) => ({
@@ -78,18 +77,17 @@ export default function App() {
 
   const resetApp = () => {
     setItemPrice('');
-    setTax(false);
     setDiscountValue(0.00);
-    setDiscount(false);
     setSplitAmount(0);
     setTotals({});
-    setDropdownVisible(false);
+    setDiscount(true);
+    setTax(true); 
     setModalVisible(false);
     setDButtonActive(false);
     setJButtonActive(true);
     setHButtonActive(false);
     setAButtonActive(false);
-    setNameInputs([{ id: 0, name: '' }]); // Reset to initial state   
+    setNameInputs([{ id: 0, name: '', dropdownVisible : false }]); // Reset to initial state   
   };
 
   const removeName = (id) => {
@@ -471,5 +469,4 @@ const styles = StyleSheet.create({
     width : 55,
     height: 35, // Set the height of the logo
   },
-  
 });
